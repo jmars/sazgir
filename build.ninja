@@ -1,0 +1,105 @@
+cflags = -Wall -Wextra -std=c99 -Wpedantic -g -Os -static -nostdlib -I/workspace/cosmo -isystem -I/workspace/cosmo/libc/isystem -isystem -fomit-frame-pointer
+ldflags = -Wl,--gc-sections -Wl,-T,cosmo/ape.lds cosmo/crt.o cosmo/ape.o cosmo/cosmopolitan.a
+
+rule cc
+  command = ./root/bin/cproc $cflags -c $in -o $out
+
+rule objcopy
+  command = objcopy -S -O binary $in $out
+
+rule ape
+  command = ./root/bin/cproc $cflags $in $ldflags -o $out
+
+rule cp
+  command = cp -r $in $out
+
+# QBE
+
+build qbe/config.h: cp config/qbe.h
+
+build o/qbe/main.o: cc qbe/main.c
+build o/qbe/util.o: cc qbe/util.c
+build o/qbe/parse.o: cc qbe/parse.c
+build o/qbe/cfg.o: cc qbe/cfg.c
+build o/qbe/mem.o: cc qbe/mem.c
+build o/qbe/ssa.o: cc qbe/ssa.c
+build o/qbe/alias.o: cc qbe/alias.c
+build o/qbe/load.o: cc qbe/load.c
+build o/qbe/copy.o: cc qbe/copy.c
+build o/qbe/fold.o: cc qbe/fold.c
+build o/qbe/live.o: cc qbe/live.c
+build o/qbe/spill.o: cc qbe/spill.c
+build o/qbe/rega.o: cc qbe/rega.c
+build o/qbe/gas.o: cc qbe/gas.c
+
+build o/qbe/amd64/targ.o: cc qbe/amd64/targ.c
+build o/qbe/amd64/sysv.o: cc qbe/amd64/sysv.c
+build o/qbe/amd64/isel.o: cc qbe/amd64/isel.c
+build o/qbe/amd64/emit.o: cc qbe/amd64/emit.c
+
+build o/qbe/arm64/abi.o: cc qbe/arm64/abi.c
+build o/qbe/arm64/targ.o: cc qbe/arm64/targ.c
+build o/qbe/arm64/isel.o: cc qbe/arm64/isel.c
+build o/qbe/arm64/emit.o: cc qbe/arm64/emit.c
+
+build o/qbe/rv64/abi.o: cc qbe/rv64/abi.c
+build o/qbe/rv64/targ.o: cc qbe/rv64/targ.c
+build o/qbe/rv64/isel.o: cc qbe/rv64/isel.c
+build o/qbe/rv64/emit.o: cc qbe/rv64/emit.c
+
+build o/qbe/qbe.dbg.com: ape o/qbe/main.o o/qbe/util.o o/qbe/parse.o o/qbe/cfg.o o/qbe/mem.o o/qbe/ssa.o o/qbe/alias.o o/qbe/load.o o/qbe/copy.o o/qbe/fold.o o/qbe/live.o o/qbe/spill.o o/qbe/rega.o o/qbe/gas.o o/qbe/amd64/targ.o o/qbe/amd64/sysv.o o/qbe/amd64/isel.o o/qbe/amd64/emit.o o/qbe/arm64/abi.o o/qbe/arm64/targ.o o/qbe/arm64/isel.o o/qbe/arm64/emit.o o/qbe/rv64/abi.o o/qbe/rv64/targ.o o/qbe/rv64/isel.o o/qbe/rv64/emit.o
+build root/bin/qbe: objcopy o/qbe/qbe.dbg.com
+
+# CPROC
+
+build cproc/config.h: cp config/cproc.h
+
+build o/cproc/driver.o: cc cproc/driver.c
+build o/cproc/util.o: cc cproc/util.c
+
+build o/cproc/cproc.dbg.com: ape o/cproc/driver.o o/cproc/util.o
+build root/bin/cproc: objcopy o/cproc/cproc.dbg.com
+
+build o/cproc/decl.o: cc cproc/decl.c
+build o/cproc/eval.o: cc cproc/eval.c
+build o/cproc/expr.o: cc cproc/expr.c
+build o/cproc/init.o: cc cproc/init.c
+build o/cproc/main.o: cc cproc/main.c
+build o/cproc/map.o: cc cproc/map.c
+build o/cproc/pp.o: cc cproc/pp.c
+build o/cproc/scan.o: cc cproc/scan.c
+build o/cproc/scope.o: cc cproc/scope.c
+build o/cproc/siphash.o: cc cproc/siphash.c
+build o/cproc/stmt.o: cc cproc/stmt.c
+build o/cproc/targ.o: cc cproc/targ.c
+build o/cproc/token.o: cc cproc/token.c
+build o/cproc/tree.o: cc cproc/tree.c
+build o/cproc/type.o: cc cproc/type.c
+build o/cproc/utf.o: cc cproc/utf.c
+build o/cproc/qbe.o: cc cproc/qbe.c
+
+build o/cproc/cproc-qbe.dbg.com: ape o/cproc/util.o o/cproc/decl.o o/cproc/eval.o o/cproc/expr.o o/cproc/init.o o/cproc/main.o o/cproc/map.o o/cproc/pp.o o/cproc/scan.o o/cproc/scope.o o/cproc/siphash.o o/cproc/stmt.o o/cproc/targ.o o/cproc/token.o o/cproc/tree.o o/cproc/type.o o/cproc/utf.o o/cproc/qbe.o
+build root/bin/cproc-qbe: objcopy o/cproc/cproc-qbe.dbg.com
+
+# SAMURAI
+
+build o/samurai/build.o: cc samurai/build.c
+build o/samurai/deps.o: cc samurai/deps.c
+build o/samurai/env.o: cc samurai/env.c
+build o/samurai/graph.o: cc samurai/graph.c
+build o/samurai/htab.o: cc samurai/htab.c
+build o/samurai/log.o: cc samurai/log.c
+build o/samurai/parse.o: cc samurai/parse.c
+build o/samurai/samu.o: cc samurai/samu.c
+build o/samurai/scan.o: cc samurai/scan.c
+build o/samurai/tool.o: cc samurai/tool.c
+build o/samurai/tree.o: cc samurai/tree.c
+build o/samurai/util.o: cc samurai/util.c
+
+build o/samurai/samurai.dbg.com: ape o/samurai/build.o o/samurai/deps.o o/samurai/env.o o/samurai/graph.o o/samurai/htab.o o/samurai/log.o o/samurai/parse.o o/samurai/samu.o o/samurai/scan.o o/samurai/tool.o o/samurai/tree.o o/samurai/util.o
+build root/bin/samurai: objcopy o/samurai/samurai.dbg.com
+
+build root/pristine/qbe: objcopy o/qbe/qbe.dbg.com
+build root/pristine/cproc: objcopy o/cproc/cproc.dbg.com
+build root/pristine/cproc-qbe: objcopy o/cproc/cproc-qbe.dbg.com
+build root/pristine/samurai: objcopy o/samurai/samurai.dbg.com
