@@ -1,6 +1,6 @@
-static const char target[]               = "x86_64-alpine-linux-musl";
-static const char *const startfiles[]    = {"-l", ":crt1.o", "-l", ":crti.o"};
-static const char *const endfiles[]      = {"-l", "c", "-l", ":crtn.o"};
+static const char target[]               = "x86_64-alpine-linux-unknown";
+static const char *const startfiles[]    = {""};
+static const char *const endfiles[]      = {""};
 static const char *const preprocesscmd[] = {
 	"cpp",
 
@@ -20,7 +20,8 @@ static const char *const preprocesscmd[] = {
 	/* ignore attributes and extension markers */
 	"-D", "__attribute__(x)=",
 	"-D", "__extension__=",
+	"-D", "__CLANG_ATOMIC_BOOL_LOCK_FREE"
 };
-static const char *const codegencmd[]    = {"./root/bin/qbe"};
+static const char *const codegencmd[]    = {"qbe"};
 static const char *const assemblecmd[]   = {"as"};
-static const char *const linkcmd[]       = {"ld",  "--dynamic-linker", "/lib/ld-musl-x86_64.so.1"};
+static const char *const linkcmd[]       = {"ld"};
