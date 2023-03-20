@@ -1,9 +1,0 @@
-[submodule "samurai"]
-	path = samurai
-	url = https://github.com/michaelforney/samurai.git
-[submodule "cproc"]
-	path = cproc
-	url = https://github.com/jmars/cproc.git
-[submodule "qbe"]
-	path = qbe
-	url = https://github.com/jmars/qbe.git
