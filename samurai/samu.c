@@ -32,7 +32,7 @@ getbuilddir(void)
 	builddir = envvar(rootenv, "builddir");
 	if (!builddir)
 		return NULL;
-	if (makedirs(builddir, false) < 0)
+	if (smakedirs(builddir, false) < 0)
 		exit(1);
 	return builddir->s;
 }

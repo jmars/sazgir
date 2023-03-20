@@ -1,5 +1,4 @@
-#include <stdint.h>
-#include <string.h>
+#include "../cosmopolitan/o/cosmopolitan.h"
 #include "util.h"
 #include "cc.h"
 

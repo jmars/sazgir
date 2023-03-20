@@ -1,5 +1,4 @@
 #include "all.h"
-#include <limits.h>
 
 /* For x86_64, do the following:
  *
@@ -237,7 +236,7 @@ sel(Ins i, ANum *an, Fn *fn)
 		} else
 			r0 = i.arg[1];
 		if (fn->tmp[r0.val].slot != -1)
-			err("unlikely argument %%%s in %s",
+			qerr("unlikely argument %%%s in %s",
 				fn->tmp[r0.val].name, optab[i.op].name);
 		if (i.op == Odiv || i.op == Orem) {
 			emit(Oxidiv, k, R, r0, R);
@@ -258,7 +257,7 @@ sel(Ins i, ANum *an, Fn *fn)
 		if (rtype(r0) == RCon)
 			goto Emit;
 		if (fn->tmp[r0.val].slot != -1)
-			err("unlikely argument %%%s in %s",
+			qerr("unlikely argument %%%s in %s",
 				fn->tmp[r0.val].name, optab[i.op].name);
 		i.arg[1] = TMP(RCX);
 		emit(Ocopy, Kw, R, TMP(RCX), R);
@@ -591,7 +590,7 @@ amatch(Addr *a, Ref r, int n, ANum *ai, Fn *fn)
 
 	if (rtype(r) == RCon) {
 		if (!addcon(&a->offset, &fn->con[r.val]))
-			err("unlikely sum of $%s and $%s",
+			qerr("unlikely sum of $%s and $%s",
 				str(a->offset.label), str(fn->con[r.val].label));
 		return 1;
 	}
@@ -672,7 +671,7 @@ amd64_isel(Fn *fn)
 					break;
 				sz = fn->con[i->arg[0].val].bits.i;
 				if (sz < 0 || sz >= INT_MAX-15)
-					err("invalid alloc size %"PRId64, sz);
+					qerr("invalid alloc size %"PRId64, sz);
 				sz = (sz + n-1) & -n;
 				sz /= 4;
 				if (sz > INT_MAX - fn->slot)

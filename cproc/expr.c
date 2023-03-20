@@ -1,10 +1,4 @@
-#include <assert.h>
-#include <ctype.h>
-#include <limits.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include "../cosmopolitan/o/cosmopolitan.h"
 #include "util.h"
 #include "utf.h"
 #include "cc.h"
@@ -481,7 +475,7 @@ encodechar32(void *dst, uint_least32_t chr, bool hexoct)
 }
 
 struct type *
-stringconcat(struct stringlit *str, bool forceutf8)
+stringconcat(struct stringlit *str, _Bool forceutf8)
 {
 	static struct array parts;
 	struct {
@@ -1232,17 +1226,17 @@ condexpr(struct scope *s)
 }
 
 struct expr *
-constexpr(struct scope *s)
+qconstexpr(struct scope *s)
 {
 	return eval(condexpr(s), EVALARITH);
 }
 
 unsigned long long
-intconstexpr(struct scope *s, bool allowneg)
+intconstexpr(struct scope *s, _Bool allowneg)
 {
 	struct expr *e;
 
-	e = constexpr(s);
+	e = qconstexpr(s);
 	if (e->kind != EXPRCONST || !(e->type->prop & PROPINT))
 		error(&tok.loc, "not an integer constant expression");
 	if (!allowneg && e->type->u.basic.issigned && e->u.constant.u >> 63)

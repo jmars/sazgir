@@ -55,8 +55,8 @@ memopt(Fn *fn)
 				t->nuse--;
 				t->ndef++;
 			} else {
-				if (k == -1)
-					err("slot %%%s is read but never stored to",
+				 if (k == -1)
+					qerr("slot %%%s is read but never stored to",
 						fn->tmp[l->arg[0].val].name);
 				/* try to turn loads into copies so we
 				 * can eliminate them later */

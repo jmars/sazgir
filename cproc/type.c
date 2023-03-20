@@ -1,8 +1,4 @@
-#include <assert.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <string.h>
+#include "../cosmopolitan/o/cosmopolitan.h"
 #include "util.h"
 #include "cc.h"
 
@@ -105,7 +101,7 @@ typerank(struct type *t)
 	return 0;
 }
 
-bool
+_Bool
 typecompatible(struct type *t1, struct type *t2)
 {
 	struct type *tmp;
@@ -156,7 +152,7 @@ typecompatible(struct type *t1, struct type *t2)
 	return false;
 }
 
-bool
+_Bool
 typesame(struct type *t1, struct type *t2)
 {
 	/* XXX: implement */

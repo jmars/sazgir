@@ -94,7 +94,7 @@ typclass(Class *c, Typ *t, int *gp, int *fp)
 	c->nfp = 0;
 
 	if (t->align > 4)
-		err("alignments larger than 16 are not supported");
+		qerr("alignments larger than 16 are not supported");
 
 	if (t->isdark || sz > 16 || sz == 0) {
 		/* large structs are replaced by a

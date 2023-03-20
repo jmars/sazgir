@@ -46,7 +46,7 @@ loginit(const char *builddir)
 	if (logfile)
 		fclose(logfile);
 	if (builddir)
-		xasprintf(&logpath, "%s/%s", builddir, logname);
+		sxasprintf(&logpath, "%s/%s", builddir, logname);
 	logfile = fopen(logpath, "r+");
 	if (!logfile) {
 		if (errno != ENOENT)
@@ -62,7 +62,7 @@ loginit(const char *builddir)
 	for (;;) {
 		if (buf.cap - buf.len < BUFSIZ) {
 			buf.cap = buf.cap ? buf.cap * 2 : BUFSIZ;
-			buf.data = xreallocarray(buf.data, buf.cap, 1);
+			buf.data = xsreallocarray(buf.data, buf.cap, 1);
 		}
 		buf.data[buf.cap - 2] = '\0';
 		if (!fgets(buf.data + buf.len, buf.cap - buf.len, logfile))
@@ -119,7 +119,7 @@ rewrite:
 	if (logfile)
 		fclose(logfile);
 	if (builddir)
-		xasprintf(&logtmppath, "%s/%s", builddir, logtmpname);
+		sxasprintf(&logtmppath, "%s/%s", builddir, logtmpname);
 	logfile = fopen(logtmppath, "w");
 	if (!logfile)
 		fatal("open %s:", logtmppath);

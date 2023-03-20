@@ -107,7 +107,7 @@ https://www.illumos.org/issues/13327
 }
 
 struct string *
-nodepath(struct node *n, bool escape)
+nodepath(struct node *n, _Bool escape)
 {
 	char *s, *d;
 	int nquote;
@@ -148,7 +148,7 @@ nodeuse(struct node *n, struct edge *e)
 {
 	/* allocate in powers of two */
 	if (!(n->nuse & (n->nuse - 1)))
-		n->use = xreallocarray(n->use, n->nuse ? n->nuse * 2 : 1, sizeof(e));
+		n->use = xsreallocarray(n->use, n->nuse ? n->nuse * 2 : 1, sizeof(e));
 	n->use[n->nuse++] = e;
 }
 
@@ -226,7 +226,7 @@ edgeadddeps(struct edge *e, struct node **deps, size_t ndeps)
 			n->gen = mkphony(n);
 		nodeuse(n, e);
 	}
-	e->in = xreallocarray(e->in, e->nin + ndeps, sizeof(e->in[0]));
+	e->in = xsreallocarray(e->in, e->nin + ndeps, sizeof(e->in[0]));
 	order = e->in + e->inorderidx;
 	norder = e->nin - e->inorderidx;
 	memmove(order + ndeps, order, norder * sizeof(e->in[0]));

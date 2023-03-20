@@ -1,10 +1,4 @@
-#include <assert.h>
-#include <stdarg.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "../cosmopolitan/o/cosmopolitan.h"
 #include "util.h"
 #include "cc.h"
 
@@ -638,7 +632,7 @@ next(void)
 		keyword(&tok);
 }
 
-bool
+_Bool
 peek(int kind)
 {
 	static struct token pending;
@@ -667,7 +661,7 @@ expect(enum tokenkind kind, const char *msg)
 	return lit;
 }
 
-bool
+_Bool
 consume(int kind)
 {
 	if (tok.kind != kind)

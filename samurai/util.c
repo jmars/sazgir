@@ -12,7 +12,7 @@
 extern const char *argv0;
 
 static void
-vwarn(const char *fmt, va_list ap)
+svwarn(const char *fmt, va_list ap)
 {
 	fprintf(stderr, "%s: ", argv0);
 	vfprintf(stderr, fmt, ap);
@@ -30,7 +30,7 @@ warn(const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	vwarn(fmt, ap);
+	svwarn(fmt, ap);
 	va_end(ap);
 }
 
@@ -40,7 +40,7 @@ fatal(const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	vwarn(fmt, ap);
+	svwarn(fmt, ap);
 	va_end(ap);
 	exit(1);
 }
@@ -58,7 +58,7 @@ xmalloc(size_t n)
 }
 
 static void *
-reallocarray(void *p, size_t n, size_t m)
+sreallocarray(void *p, size_t n, size_t m)
 {
 	if (m && n > SIZE_MAX / m) {
 		errno = ENOMEM;
@@ -68,11 +68,11 @@ reallocarray(void *p, size_t n, size_t m)
 }
 
 void *
-xreallocarray(void *p, size_t n, size_t m)
+xsreallocarray(void *p, size_t n, size_t m)
 {
-	p = reallocarray(p, n, m);
+	p = sreallocarray(p, n, m);
 	if (!p)
-		fatal("reallocarray:");
+		fatal("sreallocarray:");
 
 	return p;
 }
@@ -89,7 +89,7 @@ xmemdup(const char *s, size_t n)
 }
 
 int
-xasprintf(char **s, const char *fmt, ...)
+sxasprintf(char **s, const char *fmt, ...)
 {
 	va_list ap;
 	int ret;
@@ -207,7 +207,7 @@ canonpath(struct string *path)
 }
 
 int
-makedirs(struct string *path, bool parent)
+smakedirs(struct string *path, _Bool parent)
 {
 	int ret;
 	struct stat st;

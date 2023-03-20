@@ -30,8 +30,8 @@ mkhtab(size_t cap)
 	h = xmalloc(sizeof(*h));
 	h->len = 0;
 	h->cap = cap;
-	h->keys = xreallocarray(NULL, cap, sizeof(h->keys[0]));
-	h->vals = xreallocarray(NULL, cap, sizeof(h->vals[0]));
+	h->keys = xsreallocarray(NULL, cap, sizeof(h->keys[0]));
+	h->vals = xsreallocarray(NULL, cap, sizeof(h->vals[0]));
 	for (i = 0; i < cap; ++i)
 		h->keys[i].str = NULL;
 
@@ -87,8 +87,8 @@ htabput(struct hashtable *h, struct hashtablekey *k)
 		oldvals = h->vals;
 		oldcap = h->cap;
 		h->cap *= 2;
-		h->keys = xreallocarray(NULL, h->cap, sizeof(h->keys[0]));
-		h->vals = xreallocarray(NULL, h->cap, sizeof(h->vals[0]));
+		h->keys = xsreallocarray(NULL, h->cap, sizeof(h->keys[0]));
+		h->vals = xsreallocarray(NULL, h->cap, sizeof(h->vals[0]));
 		for (i = 0; i < h->cap; ++i)
 			h->keys[i].str = NULL;
 		for (i = 0; i < oldcap; ++i) {

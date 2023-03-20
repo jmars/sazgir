@@ -209,7 +209,7 @@ ruleaddvar(struct rule *r, char *var, struct evalstring *val)
 }
 
 struct string *
-edgevar(struct edge *e, char *var, bool escape)
+edgevar(struct edge *e, char *var, _Bool escape)
 {
 	static void *const cycle = (void *)&cycle;
 	struct evalstring *str, *p;

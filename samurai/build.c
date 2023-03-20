@@ -291,7 +291,7 @@ jobstart(struct job *j, struct edge *e)
 	for (i = 0; i < e->nout; ++i) {
 		n = e->out[i];
 		if (n->mtime == MTIME_MISSING) {
-			if (makedirs(n->path, true) < 0)
+			if (smakedirs(n->path, true) < 0)
 				goto err0;
 		}
 	}
@@ -580,8 +580,8 @@ build(void)
 				jobslen = jobslen ? jobslen * 2 : 8;
 				if (jobslen > buildopts.maxjobs)
 					jobslen = buildopts.maxjobs;
-				jobs = xreallocarray(jobs, jobslen, sizeof(jobs[0]));
-				fds = xreallocarray(fds, jobslen, sizeof(fds[0]));
+				jobs = xsreallocarray(jobs, jobslen, sizeof(jobs[0]));
+				fds = xsreallocarray(fds, jobslen, sizeof(fds[0]));
 				for (i = next; i < jobslen; ++i) {
 					jobs[i].buf.data = NULL;
 					jobs[i].buf.len = 0;

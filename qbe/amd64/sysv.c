@@ -214,7 +214,7 @@ argsclass(Ins *i0, Ins *i1, AClass *ac, int op, AClass *aret, Ref *env)
 		}
 
 	if (varc && envc)
-		err("sysv abi does not support variadic env calls");
+		qerr("sysv abi does not support variadic env calls");
 
 	return ((varc|envc) << 12) | ((6-nint) << 4) | ((8-nsse) << 8);
 }
@@ -321,7 +321,7 @@ selcall(Fn *fn, Ins *i0, Ins *i1, RAlloc **rap)
 	for (stk=0, a=&ac[i1-i0]; a>ac;)
 		if ((--a)->inmem) {
 			if (a->align > 4)
-				err("sysv abi requires alignments of 16 or less");
+				qerr("sysv abi requires alignments of 16 or less");
 			stk += a->size;
 			if (a->align == 4)
 				stk += stk & 15;
@@ -470,7 +470,7 @@ selpar(Fn *fn, Ins *i0, Ins *i1)
 		switch (a->inmem) {
 		case 1:
 			if (a->align > 4)
-				err("sysv abi requires alignments of 16 or less");
+				qerr("sysv abi requires alignments of 16 or less");
 			if (a->align == 4)
 				s = (s+3) & -4;
 			fn->tmp[i->to.val].slot = -s;

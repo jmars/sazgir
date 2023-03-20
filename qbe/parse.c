@@ -1,6 +1,4 @@
 #include "all.h"
-#include <ctype.h>
-#include <stdarg.h>
 
 enum {
 	Ke = -2, /* Erroneous mode */
@@ -137,7 +135,7 @@ static int rcls;
 static uint ntyp;
 
 void
-err(char *s, ...)
+qerr(char *s, ...)
 {
 	va_list ap;
 
@@ -196,7 +194,7 @@ static int
 lex()
 {
 	static char tok[NString];
-	int c, i, esc;
+	int c, i, esc, s;
 	int t;
 
 	do
@@ -222,12 +220,20 @@ lex()
 	case '+':
 		return Tplus;
 	case 's':
-		if (fscanf(inf, "_%f", &tokval.flts) != 1)
+		s = fgetc(inf);
+		if (s != '_') {
+			ungetc(s, inf);
 			break;
+		}
+		fscanf(inf, "%f", &tokval.flts);
 		return Tflts;
 	case 'd':
-		if (fscanf(inf, "_%lf", &tokval.fltd) != 1)
+		s = fgetc(inf);
+		if (s != '_') {
+			ungetc(s, inf);
 			break;
+		}
+		fscanf(inf, "%lf", &tokval.fltd);
 		return Tfltd;
 	case '%':
 		t = Ttmp;
@@ -268,7 +274,7 @@ lex()
 		for (i=1;; i++) {
 			c = fgetc(inf);
 			if (c == EOF)
-				err("unterminated string");
+				qerr("unterminated string");
 			vgrow(&tokval.str, i+2);
 			tokval.str[i] = c;
 			if (c == '"' && !esc) {
@@ -280,11 +286,11 @@ lex()
 	}
 Alpha:
 	if (!isalpha(c) && c != '.' && c != '_')
-		err("invalid character %c (%d)", c, c);
+		qerr("invalid character %c (%d)", c, c);
 	i = 0;
 	do {
 		if (i >= NString-1)
-			err("identifier too long");
+			qerr("identifier too long");
 		tok[i++] = c;
 		c = fgetc(inf);
 	} while (isalpha(c) || c == '$' || c == '.' || c == '_' || isdigit(c));
@@ -296,7 +302,7 @@ Alpha:
 	}
 	t = lexh[hash(tok)*K >> M];
 	if (t == Txxx || strcmp(kwmap[t], tok) != 0) {
-		err("unknown keyword %s", tok);
+		qerr("unknown keyword %s", tok);
 		return Txxx;
 	}
 	return t;
@@ -353,7 +359,7 @@ expect(int t)
 	s1 = ttoa[t] ? ttoa[t] : "??";
 	s2 = ttoa[t1] ? ttoa[t1] : "??";
 	sprintf(buf, "%s expected, got %s instead", s1, s2);
-	err(buf);
+	qerr(buf);
 }
 
 static Ref
@@ -416,7 +422,7 @@ findtyp(int i)
 	while (--i >= 0)
 		if (strcmp(tokval.str, typ[i].name) == 0)
 			return i;
-	err("undefined type :%s", tokval.str);
+	qerr("undefined type :%s", tokval.str);
 }
 
 static int
@@ -424,7 +430,7 @@ parsecls(int *tyn)
 {
 	switch (next()) {
 	default:
-		err("invalid class specifier");
+		qerr("invalid class specifier");
 	case Ttyp:
 		*tyn = findtyp(ntyp);
 		return 4;
@@ -450,13 +456,13 @@ parserefl(int arg)
 	expect(Tlparen);
 	while (peek() != Trparen) {
 		if (curi - insb >= NIns)
-			err("too many instructions (1)");
+			qerr("too many instructions (1)");
 		if (!arg && vararg)
-			err("no parameters allowed after '...'");
+			qerr("no parameters allowed after '...'");
 		switch (peek()) {
 		case Tdots:
 			if (vararg)
-				err("only one '...' allowed");
+				qerr("only one '...' allowed");
 			vararg = 1;
 			if (arg) {
 				*curi = (Ins){.op = Oargv};
@@ -466,7 +472,7 @@ parserefl(int arg)
 			goto Next;
 		case Tenv:
 			if (hasenv)
-				err("only one environment allowed");
+				qerr("only one environment allowed");
 			hasenv = 1;
 			env = 1;
 			next();
@@ -479,9 +485,9 @@ parserefl(int arg)
 		}
 		r = parseref();
 		if (req(r, R))
-			err("invalid argument");
+			qerr("invalid argument");
 		if (!arg && rtype(r) != RTmp)
-			err("invalid function parameter");
+			qerr("invalid function parameter");
 		if (k == 4)
 			if (arg)
 				*curi = (Ins){Oargc, Kl, R, {TYPE(ty), r}};
@@ -546,7 +552,7 @@ parseline(PState ps)
 
 	t = nextnl();
 	if (ps == PLbl && t != Tlbl && t != Trbrace)
-		err("label or } expected");
+		qerr("label or } expected");
 	switch (t) {
 	default:
 		if (isstore(t)) {
@@ -558,7 +564,7 @@ parseline(PState ps)
 			op = t;
 			goto DoOp;
 		}
-		err("label, instruction or jump expected");
+		qerr("label, instruction or jump expected");
 	case Trbrace:
 		return PEnd;
 	case Ttmp:
@@ -571,7 +577,7 @@ parseline(PState ps)
 			curb->s1 = b;
 		}
 		if (b->jmp.type != Jxxx)
-			err("multiple definitions of block @%s", b->name);
+			qerr("multiple definitions of block @%s", b->name);
 		*blink = b;
 		curb = b;
 		plink = &curb->phi;
@@ -588,7 +594,7 @@ parseline(PState ps)
 		else if (rcls < 5) {
 			r = parseref();
 			if (req(r, R))
-				err("invalid return value");
+				qerr("invalid return value");
 			curb->jmp.arg = r;
 		}
 		goto Close;
@@ -599,7 +605,7 @@ parseline(PState ps)
 		curb->jmp.type = Jjnz;
 		r = parseref();
 		if (req(r, R))
-			err("invalid argument for jnz jump");
+			qerr("invalid argument for jnz jump");
 		curb->jmp.arg = r;
 		expect(Tcomma);
 	Jump:
@@ -611,7 +617,7 @@ parseline(PState ps)
 			curb->s2 = findblk(tokval.str);
 		}
 		if (curb->s1 == curf->start || curb->s2 == curf->start)
-			err("invalid jump to the start node");
+			qerr("invalid jump to the start node");
 	Close:
 		expect(Tnl);
 		closeblk();
@@ -624,7 +630,7 @@ parseline(PState ps)
 DoOp:
 	if (op == Tphi) {
 		if (ps != PPhi || curb == curf->start)
-			err("unexpected phi instruction");
+			qerr("unexpected phi instruction");
 		op = -1;
 	}
 	if (op == Tcall) {
@@ -646,34 +652,34 @@ DoOp:
 	if (op == Talloc1 || op == Talloc2)
 		op = Oalloc;
 	if (k == 4)
-		err("size class must be w, l, s, or d");
+		qerr("size class must be w, l, s, or d");
 	if (op >= NPubOp)
-		err("invalid instruction");
+		qerr("invalid instruction");
 	i = 0;
 	if (peek() != Tnl)
 		for (;;) {
 			if (i == NPred)
-				err("too many arguments");
+				qerr("too many arguments");
 			if (op == -1) {
 				expect(Tlbl);
 				blk[i] = findblk(tokval.str);
 			}
 			arg[i] = parseref();
 			if (req(arg[i], R))
-				err("invalid instruction argument");
+				qerr("invalid instruction argument");
 			i++;
 			t = peek();
 			if (t == Tnl)
 				break;
 			if (t != Tcomma)
-				err(", or end of line expected");
+				qerr(", or end of line expected");
 			next();
 		}
 	next();
 Ins:
 	if (op != -1) {
 		if (curi - insb >= NIns)
-			err("too many instructions (2)");
+			qerr("too many instructions (2)");
 		curi->op = op;
 		curi->cls = k;
 		curi->to = r;
@@ -725,7 +731,7 @@ typecheck(Fn *fn)
 			if (rtype(i->to) == RTmp) {
 				t = &fn->tmp[i->to.val];
 				if (clsmerge(&t->cls, i->cls))
-					err("temporary %%%s is assigned with"
+					qerr("temporary %%%s is assigned with"
 						" multiple types", t->name);
 			}
 	}
@@ -739,15 +745,15 @@ typecheck(Fn *fn)
 			for (n=0; n<p->narg; n++) {
 				k = t->cls;
 				if (bshas(ppb, p->blk[n]->id))
-					err("multiple entries for @%s in phi %%%s",
+					qerr("multiple entries for @%s in phi %%%s",
 						p->blk[n]->name, t->name);
 				if (!usecheck(p->arg[n], k, fn))
-					err("invalid type for operand %%%s in phi %%%s",
+					qerr("invalid type for operand %%%s in phi %%%s",
 						fn->tmp[p->arg[n].val].name, t->name);
 				bsset(ppb, p->blk[n]->id);
 			}
 			if (!bsequal(pb, ppb))
-				err("predecessors not matched in phi %%%s", t->name);
+				qerr("predecessors not matched in phi %%%s", t->name);
 		}
 		for (i=b->ins; i<&b->ins[b->nins]; i++)
 			for (n=0; n<2; n++) {
@@ -755,20 +761,20 @@ typecheck(Fn *fn)
 				r = i->arg[n];
 				t = &fn->tmp[r.val];
 				if (k == Ke)
-					err("invalid instruction type in %s",
+					qerr("invalid instruction type in %s",
 						optab[i->op].name);
 				if (rtype(r) == RType)
 					continue;
 				if (rtype(r) != -1 && k == Kx)
-					err("no %s operand expected in %s",
+					qerr("no %s operand expected in %s",
 						n == 1 ? "second" : "first",
 						optab[i->op].name);
 				if (rtype(r) == -1 && k != Kx)
-					err("missing %s operand in %s",
+					qerr("missing %s operand in %s",
 						n == 1 ? "second" : "first",
 						optab[i->op].name);
 				if (!usecheck(r, k, fn))
-					err("invalid type for %s operand %%%s in %s",
+					qerr("invalid type for %s operand %%%s in %s",
 						n == 1 ? "second" : "first",
 						t->name, optab[i->op].name);
 			}
@@ -782,12 +788,12 @@ typecheck(Fn *fn)
 		}
 		if (b->jmp.type == Jjnz && !usecheck(r, Kw, fn))
 		JErr:
-			err("invalid type for jump argument %%%s in block @%s",
+			qerr("invalid type for jump argument %%%s in block @%s",
 				fn->tmp[r.val].name, b->name);
 		if (b->s1 && b->s1->jmp.type == Jxxx)
-			err("block @%s is used undefined", b->s1->name);
+			qerr("block @%s is used undefined", b->s1->name);
 		if (b->s2 && b->s2->jmp.type == Jxxx)
-			err("block @%s is used undefined", b->s2->name);
+			qerr("block @%s is used undefined", b->s2->name);
 	}
 }
 
@@ -820,19 +826,19 @@ parsefn(Lnk *lnk)
 	else
 		rcls = 5;
 	if (next() != Tglo)
-		err("function name expected");
+		qerr("function name expected");
 	strncpy(curf->name, tokval.str, NString-1);
 	curf->vararg = parserefl(0);
 	if (nextnl() != Tlbrace)
-		err("function body must start with {");
+		qerr("function body must start with {");
 	ps = PLbl;
 	do
 		ps = parseline(ps);
 	while (ps != PEnd);
 	if (!curb)
-		err("empty function");
+		qerr("empty function");
 	if (curb->jmp.type == Jxxx)
-		err("last block misses jump");
+		qerr("last block misses jump");
 	curf->mem = vnew(0, sizeof curf->mem[0], Pfn);
 	curf->nmem = 0;
 	curf->nblk = nblk;
@@ -859,7 +865,7 @@ parsefields(Field *fld, Typ *ty, int t)
 	while (t != Trbrace) {
 		ty1 = 0;
 		switch (t) {
-		default: err("invalid type member specifier");
+		default: qerr("invalid type member specifier");
 		case Td: type = Fd; s = 8; a = 3; break;
 		case Tl: type = Fl; s = 8; a = 3; break;
 		case Ts: type = Fs; s = 4; a = 2; break;
@@ -903,7 +909,7 @@ parsefields(Field *fld, Typ *ty, int t)
 		t = nextnl();
 	}
 	if (t != Trbrace)
-		err(", or } expected");
+		qerr(", or } expected");
 	fld[n].type = FEnd;
 	a = 1 << al;
 	if (sz < ty->size)
@@ -930,27 +936,27 @@ parsetyp()
 	ty->align = -1;
 	ty->size = 0;
 	if (nextnl() != Ttyp ||  nextnl() != Teq)
-		err("type name and then = expected");
+		qerr("type name and then = expected");
 	strcpy(ty->name, tokval.str);
 	t = nextnl();
 	if (t == Talign) {
 		if (nextnl() != Tint)
-			err("alignment expected");
+			qerr("alignment expected");
 		for (al=0; tokval.num /= 2; al++)
 			;
 		ty->align = al;
 		t = nextnl();
 	}
 	if (t != Tlbrace)
-		err("type body must start with {");
+		qerr("type body must start with {");
 	t = nextnl();
 	if (t == Tint) {
 		ty->isdark = 1;
 		ty->size = tokval.num;
 		if (ty->align == -1)
-			err("dark types need alignment");
+			qerr("dark types need alignment");
 		if (nextnl() != Trbrace)
-			err("} expected");
+			qerr("} expected");
 		return;
 	}
 	n = 0;
@@ -959,7 +965,7 @@ parsetyp()
 		ty->isunion = 1;
 		do {
 			if (t != Tlbrace)
-				err("invalid union member");
+				qerr("invalid union member");
 			vgrow(&ty->fields, n+1);
 			parsefields(ty->fields[n++], ty, nextnl());
 			t = nextnl();
@@ -981,7 +987,7 @@ parsedatref(Dat *d)
 	if (t == Tplus) {
 		next();
 		if (next() != Tint)
-			err("invalid token after offset in ref");
+			qerr("invalid token after offset in ref");
 		d->u.ref.off = tokval.num;
 	}
 }
@@ -1001,13 +1007,13 @@ parsedat(void cb(Dat *), Lnk *lnk)
 	Dat d;
 
 	if (nextnl() != Tglo || nextnl() != Teq)
-		err("data name, then = expected");
+		qerr("data name, then = expected");
 	strncpy(name, tokval.str, NString-1);
 	t = nextnl();
 	lnk->align = 8;
 	if (t == Talign) {
 		if (nextnl() != Tint)
-			err("alignment expected");
+			qerr("alignment expected");
 		lnk->align = tokval.num;
 		t = nextnl();
 	}
@@ -1017,10 +1023,10 @@ parsedat(void cb(Dat *), Lnk *lnk)
 	cb(&d);
 
 	if (t != Tlbrace)
-		err("expected data contents in { .. }");
+		qerr("expected data contents in { .. }");
 	for (;;) {
 		switch (nextnl()) {
-		default: err("invalid size specifier %c in data", tokval.chr);
+		default: qerr("invalid size specifier %c in data", tokval.chr);
 		case Trbrace: goto Done;
 		case Tl: d.type = DL; break;
 		case Tw: d.type = DW; break;
@@ -1046,14 +1052,14 @@ parsedat(void cb(Dat *), Lnk *lnk)
 			else if (t == Tstr)
 				parsedatstr(&d);
 			else
-				err("constant literal expected");
+				qerr("constant literal expected");
 			cb(&d);
 			t = nextnl();
 		} while (t == Tint || t == Tflts || t == Tfltd || t == Tstr);
 		if (t == Trbrace)
 			break;
 		if (t != Tcomma)
-			err(", or } expected");
+			qerr(", or } expected");
 	}
 Done:
 	d.type = DEnd;
@@ -1072,7 +1078,7 @@ parselnk(Lnk *lnk)
 			break;
 		case Tsection:
 			if (next() != Tstr)
-				err("section \"name\" expected");
+				qerr("section \"name\" expected");
 			lnk->sec = tokval.str;
 			if (peek() == Tstr) {
 				next();
@@ -1083,7 +1089,7 @@ parselnk(Lnk *lnk)
 			if (haslnk)
 			if (t != Tdata)
 			if (t != Tfunc)
-				err("only data and function have linkage");
+				qerr("only data and function have linkage");
 			return t;
 		}
 }
@@ -1105,7 +1111,7 @@ parse(FILE *f, char *path, void data(Dat *), void func(Fn *))
 		lnk = (Lnk){0};
 		switch (parselnk(&lnk)) {
 		default:
-			err("top-level definition expected");
+			qerr("top-level definition expected");
 		case Tfunc:
 			func(parsefn(&lnk));
 			break;

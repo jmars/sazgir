@@ -258,7 +258,7 @@ escape(struct scanner *s, struct evalstring ***end)
 }
 
 struct evalstring *
-scanstring(struct scanner *s, bool path)
+scanstring(struct scanner *s, _Bool path)
 {
 	struct evalstring *str = NULL, **end = &str;
 
@@ -302,7 +302,7 @@ scanpaths(struct scanner *s)
 	while ((str = scanstring(s, true))) {
 		if (npaths == max) {
 			max = max ? max * 2 : 32;
-			paths = xreallocarray(paths, max, sizeof(paths[0]));
+			paths = xsreallocarray(paths, max, sizeof(paths[0]));
 		}
 		paths[npaths++] = str;
 	}
@@ -336,7 +336,7 @@ scanpipe(struct scanner *s, int n)
 	return 2;
 }
 
-bool
+_Bool
 scanindent(struct scanner *s)
 {
 	bool indent;

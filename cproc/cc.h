@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include "../cosmopolitan/o/cosmopolitan.h"
 
 struct func;
 
@@ -487,7 +487,7 @@ struct type *stringconcat(struct stringlit *, _Bool);
 
 struct expr *expr(struct scope *);
 struct expr *assignexpr(struct scope *);
-struct expr *constexpr(struct scope *);
+struct expr *qconstexpr(struct scope *);
 unsigned long long intconstexpr(struct scope *, _Bool);
 void delexpr(struct expr *);
 

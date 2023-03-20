@@ -223,7 +223,7 @@ rv64_isel(Fn *fn)
 					break;
 				sz = fn->con[i->arg[0].val].bits.i;
 				if (sz < 0 || sz >= INT_MAX-15)
-					err("invalid alloc size %"PRId64, sz);
+					qerr("invalid alloc size %"PRId64, sz);
 				sz = (sz + n-1) & -n;
 				sz /= 4;
 				if (sz > INT_MAX - fn->slot)

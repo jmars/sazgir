@@ -1,17 +1,29 @@
-cflags = -Wall -Wextra -std=c99 -Wpedantic -g -Os -static -nostdlib -I/workspace/cosmo -isystem -I/workspace/cosmo/libc/isystem -isystem -fomit-frame-pointer
-ldflags = -Wl,--gc-sections -Wl,-T,cosmo/ape.lds cosmo/crt.o cosmo/ape.o cosmo/cosmopolitan.a
+cflags = -std=c99 -pipe -static -nostdlib -nostdinc -I./cosmo-include -include ./cosmopolitan/o/cosmopolitan.h
+ldflags = -s -Wl,--gc-sections -Wl,-T,cosmopolitan/o/tinylinux/ape/ape.lds cosmopolitan/o/tinylinux/libc/crt/crt.o cosmopolitan/o/tinylinux/ape/ape.o cosmopolitan/o/tinylinux/cosmopolitan.a
 
 rule cc
-  command = ./root/bin/cproc $cflags -c $in -o $out
+  command = compile ./root/bin/cproc $cflags -c $in -o $out
 
 rule objcopy
   command = objcopy -S -O binary $in $out
 
 rule ape
-  command = ./root/bin/cproc $cflags $in $ldflags -o $out
+  command = compile ./root/bin/cproc $cflags $in $ldflags -o $out
 
 rule cp
   command = cp -r $in $out
+
+# Toolchain
+build root/bin/compile: cp cosmopolitan/build/bootstrap/compile.com
+build root/bin/as: cp cosmopolitan/o/third_party/gcc/bin/x86_64-linux-musl-as
+build root/bin/cpp: cp cosmopolitan/o/third_party/gcc/bin/x86_64-linux-musl-cpp
+build root/bin/objcopy: cp cosmopolitan/o/third_party/gcc/bin/x86_64-linux-musl-objcopy
+build root/bin/ld: cp cosmopolitan/o/third_party/gcc/x86_64-linux-musl/bin/ld.bfd
+build root/bin/cc1: cp cosmopolitan/o/third_party/gcc/libexec/gcc/x86_64-linux-musl/9.2.0/cc1
+
+build o/uname.o: cc uname.c
+build o/uname.dbg.com: ape o/uname.o
+build root/bin/uname: objcopy o/uname.dbg.com
 
 # QBE
 
@@ -38,16 +50,11 @@ build o/qbe/amd64/isel.o: cc qbe/amd64/isel.c
 build o/qbe/amd64/emit.o: cc qbe/amd64/emit.c
 
 build o/qbe/arm64/abi.o: cc qbe/arm64/abi.c
-build o/qbe/arm64/targ.o: cc qbe/arm64/targ.c
-build o/qbe/arm64/isel.o: cc qbe/arm64/isel.c
 build o/qbe/arm64/emit.o: cc qbe/arm64/emit.c
+build o/qbe/arm64/isel.o: cc qbe/arm64/isel.c
+build o/qbe/arm64/targ.o: cc qbe/arm64/targ.c
 
-build o/qbe/rv64/abi.o: cc qbe/rv64/abi.c
-build o/qbe/rv64/targ.o: cc qbe/rv64/targ.c
-build o/qbe/rv64/isel.o: cc qbe/rv64/isel.c
-build o/qbe/rv64/emit.o: cc qbe/rv64/emit.c
-
-build o/qbe/qbe.dbg.com: ape o/qbe/main.o o/qbe/util.o o/qbe/parse.o o/qbe/cfg.o o/qbe/mem.o o/qbe/ssa.o o/qbe/alias.o o/qbe/load.o o/qbe/copy.o o/qbe/fold.o o/qbe/live.o o/qbe/spill.o o/qbe/rega.o o/qbe/gas.o o/qbe/amd64/targ.o o/qbe/amd64/sysv.o o/qbe/amd64/isel.o o/qbe/amd64/emit.o o/qbe/arm64/abi.o o/qbe/arm64/targ.o o/qbe/arm64/isel.o o/qbe/arm64/emit.o o/qbe/rv64/abi.o o/qbe/rv64/targ.o o/qbe/rv64/isel.o o/qbe/rv64/emit.o
+build o/qbe/qbe.dbg.com: ape o/qbe/main.o o/qbe/util.o o/qbe/parse.o o/qbe/cfg.o o/qbe/mem.o o/qbe/ssa.o o/qbe/alias.o o/qbe/load.o o/qbe/copy.o o/qbe/fold.o o/qbe/live.o o/qbe/spill.o o/qbe/rega.o o/qbe/gas.o o/qbe/amd64/targ.o o/qbe/amd64/sysv.o o/qbe/amd64/isel.o o/qbe/amd64/emit.o o/qbe/arm64/abi.o o/qbe/arm64/emit.o o/qbe/arm64/isel.o o/qbe/arm64/targ.o
 build root/bin/qbe: objcopy o/qbe/qbe.dbg.com
 
 # CPROC
@@ -99,142 +106,32 @@ build o/samurai/util.o: cc samurai/util.c
 build o/samurai/samurai.dbg.com: ape o/samurai/build.o o/samurai/deps.o o/samurai/env.o o/samurai/graph.o o/samurai/htab.o o/samurai/log.o o/samurai/parse.o o/samurai/samu.o o/samurai/scan.o o/samurai/tool.o o/samurai/tree.o o/samurai/util.o
 build root/bin/samurai: objcopy o/samurai/samurai.dbg.com
 
-# OBJC
+# Cello
 
-build o/objc-bootstrap/pointer.o: cc objc-bootstrap/pointer.c
-build o/objc-bootstrap/compdef.o: cc objc-bootstrap/compdef.c
-build o/objc-bootstrap/exprstmt.o: cc objc-bootstrap/exprstmt.c
-build o/objc-bootstrap/dfltstmt.o: cc objc-bootstrap/dfltstmt.c
-build o/objc-bootstrap/namedecl.o: cc objc-bootstrap/namedecl.c
-build o/objc-bootstrap/structsp.o: cc objc-bootstrap/structsp.c
-build o/objc-bootstrap/Message.o: cc objc-bootstrap/Message.c
-build o/objc-bootstrap/Exceptn.o: cc objc-bootstrap/Exceptn.c
-build o/objc-bootstrap/OutOfMem.o: cc objc-bootstrap/OutOfMem.c
-build o/objc-bootstrap/badvers.o: cc objc-bootstrap/badvers.c
-build o/objc-bootstrap/outofbnd.o: cc objc-bootstrap/outofbnd.c
-build o/objc-bootstrap/typeinc.o: cc objc-bootstrap/typeinc.c
-build o/objc-bootstrap/unknownt.o: cc objc-bootstrap/unknownt.c
-build o/objc-bootstrap/notfound.o: cc objc-bootstrap/notfound.c
-build o/objc-bootstrap/trlunit.o: cc objc-bootstrap/trlunit.c
-build o/objc-bootstrap/gasmstmt.o: cc objc-bootstrap/gasmstmt.c
-build o/objc-bootstrap/dasmstmt.o: cc objc-bootstrap/dasmstmt.c
-build o/objc-bootstrap/contstmt.o: cc objc-bootstrap/contstmt.c
-build o/objc-bootstrap/setseq.o: cc objc-bootstrap/setseq.c
-build o/objc-bootstrap/method.o: cc objc-bootstrap/method.c
-build o/objc-bootstrap/enumtor.o: cc objc-bootstrap/enumtor.c
-build o/objc-bootstrap/keyseq.o: cc objc-bootstrap/keyseq.c
-build o/objc-bootstrap/sizeof.o: cc objc-bootstrap/sizeof.c
-build o/objc-bootstrap/typeof.o: cc objc-bootstrap/typeof.c
-build o/objc-bootstrap/lblstmt.o: cc objc-bootstrap/lblstmt.c
-build o/objc-bootstrap/arydecl.o: cc objc-bootstrap/arydecl.c
-build o/objc-bootstrap/dotxpr.o: cc objc-bootstrap/dotxpr.c
-build o/objc-bootstrap/set.o: cc objc-bootstrap/set.c
-build o/objc-bootstrap/stclass.o: cc objc-bootstrap/stclass.c
-build o/objc-bootstrap/assoc.o: cc objc-bootstrap/assoc.c
-build o/objc-bootstrap/pfixxpr.o: cc objc-bootstrap/pfixxpr.c
-build o/objc-bootstrap/casestmt.o: cc objc-bootstrap/casestmt.c
-build o/objc-bootstrap/constxpr.o: cc objc-bootstrap/constxpr.c
-build o/objc-bootstrap/condxpr.o: cc objc-bootstrap/condxpr.c
-build o/objc-bootstrap/precdecl.o: cc objc-bootstrap/precdecl.c
-build o/objc-bootstrap/ordcltn.o: cc objc-bootstrap/ordcltn.c
-build o/objc-bootstrap/treeseq.o: cc objc-bootstrap/treeseq.c
-build o/objc-bootstrap/sortcltn.o: cc objc-bootstrap/sortcltn.c
-build o/objc-bootstrap/identxpr.o: cc objc-bootstrap/identxpr.c
-build o/objc-bootstrap/assign.o: cc objc-bootstrap/assign.c
-build o/objc-bootstrap/precxpr.o: cc objc-bootstrap/precxpr.c
-build o/objc-bootstrap/Object.o: cc objc-bootstrap/Object.c
-build o/objc-bootstrap/classdef.o: cc objc-bootstrap/classdef.c
-build o/objc-bootstrap/initdecl.o: cc objc-bootstrap/initdecl.c
-build o/objc-bootstrap/dictnary.o: cc objc-bootstrap/dictnary.c
-build o/objc-bootstrap/selector.o: cc objc-bootstrap/selector.c
-build o/objc-bootstrap/fundef.o: cc objc-bootstrap/fundef.c
-build o/objc-bootstrap/options.o: cc objc-bootstrap/options.c
-build o/objc-bootstrap/funcall.o: cc objc-bootstrap/funcall.c
-build o/objc-bootstrap/expr.o: cc objc-bootstrap/expr.c
-build o/objc-bootstrap/keywxpr.o: cc objc-bootstrap/keywxpr.c
-build o/objc-bootstrap/node.o: cc objc-bootstrap/node.c
-build o/objc-bootstrap/valueseq.o: cc objc-bootstrap/valueseq.c
-build o/objc-bootstrap/btincall.o: cc objc-bootstrap/btincall.c
-build o/objc-bootstrap/Block.o: cc objc-bootstrap/Block.c
-build o/objc-bootstrap/ifstmt.o: cc objc-bootstrap/ifstmt.c
-build o/objc-bootstrap/unyxpr.o: cc objc-bootstrap/unyxpr.c
-build o/objc-bootstrap/parmdef.o: cc objc-bootstrap/parmdef.c
-build o/objc-bootstrap/util.o: cc objc-bootstrap/util.c
-build o/objc-bootstrap/cltnseq.o: cc objc-bootstrap/cltnseq.c
-build o/objc-bootstrap/array.o: cc objc-bootstrap/array.c
-build o/objc-bootstrap/idarray.o: cc objc-bootstrap/idarray.c
-build o/objc-bootstrap/forstmt.o: cc objc-bootstrap/forstmt.c
-build o/objc-bootstrap/deref.o: cc objc-bootstrap/deref.c
-build o/objc-bootstrap/binxpr.o: cc objc-bootstrap/binxpr.c
-build o/objc-bootstrap/ocstring.o: cc objc-bootstrap/ocstring.c
-build o/objc-bootstrap/objcrt.o: cc objc-bootstrap/objcrt.c
-build o/objc-bootstrap/datadef.o: cc objc-bootstrap/datadef.c
-build o/objc-bootstrap/gasmop.o: cc objc-bootstrap/gasmop.c
-build o/objc-bootstrap/dostmt.o: cc objc-bootstrap/dostmt.c
-build o/objc-bootstrap/gattrib.o: cc objc-bootstrap/gattrib.c
-build o/objc-bootstrap/arrowxpr.o: cc objc-bootstrap/arrowxpr.c
-build o/objc-bootstrap/cppdirec.o: cc objc-bootstrap/cppdirec.c
-build o/objc-bootstrap/keywdecl.o: cc objc-bootstrap/keywdecl.c
-build o/objc-bootstrap/ascfiler.o: cc objc-bootstrap/ascfiler.c
-build o/objc-bootstrap/relxpr.o: cc objc-bootstrap/relxpr.c
-build o/objc-bootstrap/gatrdecl.o: cc objc-bootstrap/gatrdecl.c
-build o/objc-bootstrap/switstmt.o: cc objc-bootstrap/switstmt.c
-build o/objc-bootstrap/funbody.o: cc objc-bootstrap/funbody.c
-build o/objc-bootstrap/rtrnstmt.o: cc objc-bootstrap/rtrnstmt.c
-build o/objc-bootstrap/listxpr.o: cc objc-bootstrap/listxpr.c
-build o/objc-bootstrap/whilstmt.o: cc objc-bootstrap/whilstmt.c
-build o/objc-bootstrap/type.o: cc objc-bootstrap/type.c
-build o/objc-bootstrap/fundecl.o: cc objc-bootstrap/fundecl.c
-build o/objc-bootstrap/def.o: cc objc-bootstrap/def.c
-build o/objc-bootstrap/stkframe.o: cc objc-bootstrap/stkframe.c
-build o/objc-bootstrap/globdef.o: cc objc-bootstrap/globdef.c
-build o/objc-bootstrap/var.o: cc objc-bootstrap/var.c
-build o/objc-bootstrap/aryvar.o: cc objc-bootstrap/aryvar.c
-build o/objc-bootstrap/scalar.o: cc objc-bootstrap/scalar.c
-build o/objc-bootstrap/parmlist.o: cc objc-bootstrap/parmlist.c
-build o/objc-bootstrap/commaxpr.o: cc objc-bootstrap/commaxpr.c
-build o/objc-bootstrap/stardecl.o: cc objc-bootstrap/stardecl.c
-build o/objc-bootstrap/gotostmt.o: cc objc-bootstrap/gotostmt.c
-build o/objc-bootstrap/indexxpr.o: cc objc-bootstrap/indexxpr.c
-build o/objc-bootstrap/addrof.o: cc objc-bootstrap/addrof.c
-build o/objc-bootstrap/selxpr.o: cc objc-bootstrap/selxpr.c
-build o/objc-bootstrap/sequence.o: cc objc-bootstrap/sequence.c
-build o/objc-bootstrap/stmt.o: cc objc-bootstrap/stmt.c
-build o/objc-bootstrap/msgxpr.o: cc objc-bootstrap/msgxpr.c
-build o/objc-bootstrap/methdef.o: cc objc-bootstrap/methdef.c
-build o/objc-bootstrap/compstmt.o: cc objc-bootstrap/compstmt.c
-build o/objc-bootstrap/decl.o: cc objc-bootstrap/decl.c
-build o/objc-bootstrap/symbol.o: cc objc-bootstrap/symbol.c
-build o/objc-bootstrap/blockxpr.o: cc objc-bootstrap/blockxpr.c
-build o/objc-bootstrap/enumsp.o: cc objc-bootstrap/enumsp.c
-build o/objc-bootstrap/bflddecl.o: cc objc-bootstrap/bflddecl.c
-build o/objc-bootstrap/castxpr.o: cc objc-bootstrap/castxpr.c
-build o/objc-bootstrap/lex.o: cc objc-bootstrap/lex.c
-build o/objc-bootstrap/lexfiltr.o: cc objc-bootstrap/lexfiltr.c
-build o/objc-bootstrap/yacc.o: cc objc-bootstrap/yacc.c
-build o/objc-bootstrap/cltn.o: cc objc-bootstrap/cltn.c
-build o/objc-bootstrap/pfixdecl.o: cc objc-bootstrap/pfixdecl.c
-
-build o/objc-bootstrap/_objc1.o: cc objc-bootstrap/_objc1.c
-build o/objc-bootstrap/objc1.o: cc objc-bootstrap/objc1.c
-build o/objc-bootstrap/objc1.dbg.com: ape o/objc-bootstrap/_objc1.o o/objc-bootstrap/objc1.o o/objc-bootstrap/pointer.o o/objc-bootstrap/compdef.o o/objc-bootstrap/exprstmt.o o/objc-bootstrap/dfltstmt.o o/objc-bootstrap/namedecl.o o/objc-bootstrap/structsp.o o/objc-bootstrap/Message.o o/objc-bootstrap/Exceptn.o o/objc-bootstrap/OutOfMem.o o/objc-bootstrap/badvers.o o/objc-bootstrap/outofbnd.o o/objc-bootstrap/typeinc.o o/objc-bootstrap/unknownt.o o/objc-bootstrap/notfound.o o/objc-bootstrap/trlunit.o o/objc-bootstrap/gasmstmt.o o/objc-bootstrap/dasmstmt.o o/objc-bootstrap/contstmt.o o/objc-bootstrap/setseq.o o/objc-bootstrap/method.o o/objc-bootstrap/enumtor.o o/objc-bootstrap/keyseq.o o/objc-bootstrap/sizeof.o o/objc-bootstrap/typeof.o o/objc-bootstrap/lblstmt.o o/objc-bootstrap/arydecl.o o/objc-bootstrap/dotxpr.o o/objc-bootstrap/set.o o/objc-bootstrap/stclass.o o/objc-bootstrap/assoc.o o/objc-bootstrap/pfixxpr.o o/objc-bootstrap/casestmt.o o/objc-bootstrap/constxpr.o o/objc-bootstrap/condxpr.o o/objc-bootstrap/precdecl.o o/objc-bootstrap/ordcltn.o o/objc-bootstrap/treeseq.o o/objc-bootstrap/sortcltn.o o/objc-bootstrap/identxpr.o o/objc-bootstrap/assign.o o/objc-bootstrap/precxpr.o o/objc-bootstrap/Object.o o/objc-bootstrap/classdef.o o/objc-bootstrap/initdecl.o o/objc-bootstrap/dictnary.o o/objc-bootstrap/selector.o o/objc-bootstrap/fundef.o o/objc-bootstrap/options.o o/objc-bootstrap/funcall.o o/objc-bootstrap/expr.o o/objc-bootstrap/keywxpr.o o/objc-bootstrap/node.o o/objc-bootstrap/valueseq.o o/objc-bootstrap/btincall.o o/objc-bootstrap/Block.o o/objc-bootstrap/ifstmt.o o/objc-bootstrap/unyxpr.o o/objc-bootstrap/parmdef.o o/objc-bootstrap/util.o o/objc-bootstrap/cltnseq.o o/objc-bootstrap/array.o o/objc-bootstrap/idarray.o o/objc-bootstrap/forstmt.o o/objc-bootstrap/deref.o o/objc-bootstrap/binxpr.o o/objc-bootstrap/ocstring.o o/objc-bootstrap/objcrt.o o/objc-bootstrap/datadef.o o/objc-bootstrap/gasmop.o o/objc-bootstrap/dostmt.o o/objc-bootstrap/gattrib.o o/objc-bootstrap/arrowxpr.o o/objc-bootstrap/cppdirec.o o/objc-bootstrap/keywdecl.o o/objc-bootstrap/ascfiler.o o/objc-bootstrap/relxpr.o o/objc-bootstrap/gatrdecl.o o/objc-bootstrap/switstmt.o o/objc-bootstrap/funbody.o o/objc-bootstrap/rtrnstmt.o o/objc-bootstrap/listxpr.o o/objc-bootstrap/whilstmt.o o/objc-bootstrap/type.o o/objc-bootstrap/fundecl.o o/objc-bootstrap/def.o o/objc-bootstrap/stkframe.o o/objc-bootstrap/globdef.o o/objc-bootstrap/var.o o/objc-bootstrap/aryvar.o o/objc-bootstrap/scalar.o o/objc-bootstrap/parmlist.o o/objc-bootstrap/commaxpr.o o/objc-bootstrap/stardecl.o o/objc-bootstrap/gotostmt.o o/objc-bootstrap/indexxpr.o o/objc-bootstrap/addrof.o o/objc-bootstrap/selxpr.o o/objc-bootstrap/sequence.o o/objc-bootstrap/stmt.o o/objc-bootstrap/msgxpr.o o/objc-bootstrap/methdef.o o/objc-bootstrap/compstmt.o o/objc-bootstrap/decl.o o/objc-bootstrap/symbol.o o/objc-bootstrap/blockxpr.o o/objc-bootstrap/enumsp.o o/objc-bootstrap/bflddecl.o o/objc-bootstrap/castxpr.o o/objc-bootstrap/lex.o o/objc-bootstrap/lexfiltr.o o/objc-bootstrap/yacc.o o/objc-bootstrap/cltn.o o/objc-bootstrap/pfixdecl.o
-build root/bin/objc1: objcopy o/objc-bootstrap/objc1.dbg.com
-
-build o/objc-bootstrap/_plink.o: cc objc-bootstrap/_plink.c
-build o/objc-bootstrap/postlink.o: cc objc-bootstrap/postlink.c
-build o/objc-bootstrap/postlink.dbg.com: ape o/objc-bootstrap/_plink.o o/objc-bootstrap/postlink.o o/objc-bootstrap/pointer.o o/objc-bootstrap/compdef.o o/objc-bootstrap/exprstmt.o o/objc-bootstrap/dfltstmt.o o/objc-bootstrap/namedecl.o o/objc-bootstrap/structsp.o o/objc-bootstrap/Message.o o/objc-bootstrap/Exceptn.o o/objc-bootstrap/OutOfMem.o o/objc-bootstrap/badvers.o o/objc-bootstrap/outofbnd.o o/objc-bootstrap/typeinc.o o/objc-bootstrap/unknownt.o o/objc-bootstrap/notfound.o o/objc-bootstrap/trlunit.o o/objc-bootstrap/gasmstmt.o o/objc-bootstrap/dasmstmt.o o/objc-bootstrap/contstmt.o o/objc-bootstrap/setseq.o o/objc-bootstrap/method.o o/objc-bootstrap/enumtor.o o/objc-bootstrap/keyseq.o o/objc-bootstrap/sizeof.o o/objc-bootstrap/typeof.o o/objc-bootstrap/lblstmt.o o/objc-bootstrap/arydecl.o o/objc-bootstrap/dotxpr.o o/objc-bootstrap/set.o o/objc-bootstrap/stclass.o o/objc-bootstrap/assoc.o o/objc-bootstrap/pfixxpr.o o/objc-bootstrap/casestmt.o o/objc-bootstrap/constxpr.o o/objc-bootstrap/condxpr.o o/objc-bootstrap/precdecl.o o/objc-bootstrap/ordcltn.o o/objc-bootstrap/treeseq.o o/objc-bootstrap/sortcltn.o o/objc-bootstrap/identxpr.o o/objc-bootstrap/assign.o o/objc-bootstrap/precxpr.o o/objc-bootstrap/Object.o o/objc-bootstrap/classdef.o o/objc-bootstrap/initdecl.o o/objc-bootstrap/dictnary.o o/objc-bootstrap/selector.o o/objc-bootstrap/fundef.o o/objc-bootstrap/options.o o/objc-bootstrap/funcall.o o/objc-bootstrap/expr.o o/objc-bootstrap/keywxpr.o o/objc-bootstrap/node.o o/objc-bootstrap/valueseq.o o/objc-bootstrap/btincall.o o/objc-bootstrap/Block.o o/objc-bootstrap/ifstmt.o o/objc-bootstrap/unyxpr.o o/objc-bootstrap/parmdef.o o/objc-bootstrap/util.o o/objc-bootstrap/cltnseq.o o/objc-bootstrap/array.o o/objc-bootstrap/idarray.o o/objc-bootstrap/forstmt.o o/objc-bootstrap/deref.o o/objc-bootstrap/binxpr.o o/objc-bootstrap/ocstring.o o/objc-bootstrap/objcrt.o o/objc-bootstrap/datadef.o o/objc-bootstrap/gasmop.o o/objc-bootstrap/dostmt.o o/objc-bootstrap/gattrib.o o/objc-bootstrap/arrowxpr.o o/objc-bootstrap/cppdirec.o o/objc-bootstrap/keywdecl.o o/objc-bootstrap/ascfiler.o o/objc-bootstrap/relxpr.o o/objc-bootstrap/gatrdecl.o o/objc-bootstrap/switstmt.o o/objc-bootstrap/funbody.o o/objc-bootstrap/rtrnstmt.o o/objc-bootstrap/listxpr.o o/objc-bootstrap/whilstmt.o o/objc-bootstrap/type.o o/objc-bootstrap/fundecl.o o/objc-bootstrap/def.o o/objc-bootstrap/stkframe.o o/objc-bootstrap/globdef.o o/objc-bootstrap/var.o o/objc-bootstrap/aryvar.o o/objc-bootstrap/scalar.o o/objc-bootstrap/parmlist.o o/objc-bootstrap/commaxpr.o o/objc-bootstrap/stardecl.o o/objc-bootstrap/gotostmt.o o/objc-bootstrap/indexxpr.o o/objc-bootstrap/addrof.o o/objc-bootstrap/selxpr.o o/objc-bootstrap/sequence.o o/objc-bootstrap/stmt.o o/objc-bootstrap/msgxpr.o o/objc-bootstrap/methdef.o o/objc-bootstrap/compstmt.o o/objc-bootstrap/decl.o o/objc-bootstrap/symbol.o o/objc-bootstrap/blockxpr.o o/objc-bootstrap/enumsp.o o/objc-bootstrap/bflddecl.o o/objc-bootstrap/castxpr.o o/objc-bootstrap/lex.o o/objc-bootstrap/lexfiltr.o o/objc-bootstrap/yacc.o o/objc-bootstrap/cltn.o o/objc-bootstrap/pfixdecl.o
-build root/bin/postlink: objcopy o/objc-bootstrap/postlink.dbg.com
-
-build o/objc-bootstrap/_prelink.o: cc objc-bootstrap/_prelink.c
-build root/lib/_prelink.o: cp o/objc-bootstrap/_prelink.o
-
-build root/bin/objc: cp objc-bootstrap/objc
-
-# PRISTINE
-
-build root/pristine/qbe: objcopy o/qbe/qbe.dbg.com
-build root/pristine/cproc: objcopy o/cproc/cproc.dbg.com
-build root/pristine/cproc-qbe: objcopy o/cproc/cproc-qbe.dbg.com
-build root/pristine/samurai: objcopy o/samurai/samurai.dbg.com
-build root/pristine/objc1: objcopy o/objc-bootstrap/objc1.dbg.com
-build root/pristine/postlink: objcopy o/objc-bootstrap/postlink.dbg.com
+# build o/cello/Alloc.o: cc Cello/src/Alloc.c
+# build o/cello/Array.o: cc Cello/src/Array.c
+# build o/cello/Assign.o: cc Cello/src/Assign.c
+# build o/cello/Cmp.o: cc Cello/src/Cmp.c
+# build o/cello/Concat.o: cc Cello/src/Concat.c
+# build o/cello/Doc.o: cc Cello/src/Doc.c
+# # build o/cello/Exception.o: cc Cello/src/Exception.c
+# build o/cello/File.o: cc Cello/src/File.c
+# build o/cello/Function.o: cc Cello/src/Function.c
+# build o/cello/GC.o: cc Cello/src/GC.c
+# build o/cello/Get.o: cc Cello/src/Get.c
+# build o/cello/Hash.o: cc Cello/src/Hash.c
+# build o/cello/Iter.o: cc Cello/src/Iter.c
+# build o/cello/Len.o: cc Cello/src/Len.c
+# build o/cello/List.o: cc Cello/src/List.c
+# build o/cello/Num.o: cc Cello/src/Num.c
+# build o/cello/Pointer.o: cc Cello/src/Pointer.c
+# build o/cello/Push.o: cc Cello/src/Push.c
+# build o/cello/Resize.o: cc Cello/src/Resize.c
+# build o/cello/Show.o: cc Cello/src/Show.c
+# build o/cello/Start.o: cc Cello/src/Start.c
+# build o/cello/String.o: cc Cello/src/String.c
+# build o/cello/Table.o: cc Cello/src/Table.c
+# build o/cello/Thread.o: cc Cello/src/Thread.c
+# build o/cello/Tree.o: cc Cello/src/Tree.c
+# build o/cello/Tuple.o: cc Cello/src/Tuple.c
+# build o/cello/Type.o: cc Cello/src/Type.c

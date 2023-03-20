@@ -1,5 +1,4 @@
 #include "all.h"
-#include <stdarg.h>
 
 typedef struct Bitset Bitset;
 typedef struct Vec Vec;
@@ -442,7 +441,7 @@ salloc(Ref rt, Ref rs, Fn *fn)
 	if (rtype(rs) == RCon) {
 		sz = fn->con[rs.val].bits.i;
 		if (sz < 0 || sz >= INT_MAX-15)
-			err("invalid alloc size %"PRId64, sz);
+			qerr("invalid alloc size %"PRId64, sz);
 		sz = (sz + 15)  & -16;
 		emit(Osalloc, Kl, rt, getcon(sz, fn), R);
 	} else {
@@ -453,7 +452,7 @@ salloc(Ref rt, Ref rs, Fn *fn)
 		emit(Oand, Kl, r0, r1, getcon(-16, fn));
 		emit(Oadd, Kl, r1, rs, getcon(15, fn));
 		if (fn->tmp[rs.val].slot != -1)
-			err("unlikely alloc argument %%%s for %%%s",
+			qerr("unlikely alloc argument %%%s for %%%s",
 				fn->tmp[rs.val].name, fn->tmp[rt.val].name);
 	}
 }
@@ -467,8 +466,7 @@ bsinit(BSet *bs, uint n)
 }
 
 MAKESURE(NBit_is_64, NBit == 64);
-inline static uint
-popcnt(bits b)
+uint64_t(popcnt)(uint64_t b)
 {
 	b = (b & 0x5555555555555555) + ((b>>1) & 0x5555555555555555);
 	b = (b & 0x3333333333333333) + ((b>>2) & 0x3333333333333333);

@@ -21,9 +21,9 @@ void warn(const char *, ...);
 void fatal(const char *, ...);
 
 void *xmalloc(size_t);
-void *xreallocarray(void *, size_t, size_t);
+void *xsreallocarray(void *, size_t, size_t);
 char *xmemdup(const char *, size_t);
-int xasprintf(char **, const char *, ...);
+int sxasprintf(char **, const char *, ...);
 
 /* append a byte to a buffer */
 void bufadd(struct buffer *buf, char c);
@@ -39,6 +39,6 @@ void delevalstr(void *);
  * folding '/.' and 'foo/..' */
 void canonpath(struct string *);
 /* make a directory (or parent directory of a file) recursively */
-int makedirs(struct string *, _Bool);
+int smakedirs(struct string *, _Bool);
 /* write a new file with the given name and contents */
 int writefile(const char *, struct string *);

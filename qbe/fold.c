@@ -322,16 +322,69 @@ fold(Fn *fn)
 }
 
 /* boring folding code */
+typedef union {
+	int64_t s;
+	uint64_t u;
+	float fs;
+	double fd;
+} LR;
+
+static uint64_t foldintdefault(int* op, LR* l, LR* r)
+{
+	if (Ocmpw <= *op && *op <= Ocmpl1) {
+		if (*op <= Ocmpw1) {
+			l->u = (int32_t)l->u;
+			r->u = (int32_t)r->u;
+		} else
+			*op -= Ocmpl - Ocmpw;
+		switch (*op - Ocmpw) {
+		case Ciule: return l->u <= r->u;
+		case Ciult: return l->u < r->u;
+		case Cisle: return l->s <= r->s;
+		case Cislt: return l->s < r->s;
+		case Cisgt: return l->s > r->s;
+		case Cisge: return l->s >= r->s;
+		case Ciugt: return l->u > r->u;
+		case Ciuge: return l->u >= r->u;
+		case Cieq:  return l->u == r->u;
+		case Cine:  return l->u != r->u;
+		default: die("unreachable");
+		}
+	}
+	else if (Ocmps <= *op && *op <= Ocmps1) {
+		switch (*op - Ocmps) {
+		case Cfle: return l->fs <= r->fs;
+		case Cflt: return l->fs < r->fs;
+		case Cfgt: return l->fs > r->fs;
+		case Cfge: return l->fs >= r->fs;
+		case Cfne: return l->fs != r->fs;
+		case Cfeq: return l->fs == r->fs;
+		case Cfo: return l->fs < r->fs || l->fs >= r->fs;
+		case Cfuo: return !(l->fs < r->fs || l->fs >= r->fs);
+		default: die("unreachable");
+		}
+	}
+	else if (Ocmpd <= *op && *op <= Ocmpd1) {
+		switch (*op - Ocmpd) {
+		case Cfle: return l->fd <= r->fd;
+		case Cflt: return l->fd < r->fd;
+		case Cfgt: return l->fd > r->fd;
+		case Cfge: return l->fd >= r->fd;
+		case Cfne: return l->fd != r->fd;
+		case Cfeq: return l->fd == r->fd;
+		case Cfo: return l->fd < r->fd || l->fd >= r->fd;
+		case Cfuo: return !(l->fd < r->fd || l->fd >= r->fd);
+		default: die("unreachable");
+		}
+	}
+	else
+		die("unreachable");
+}
 
 static int
 foldint(Con *res, int op, int w, Con *cl, Con *cr)
 {
-	union {
-		int64_t s;
-		uint64_t u;
-		float fs;
-		double fd;
-	} l, r;
+	LR l, r;
 	uint64_t x;
 	uint32_t lab;
 	int typ;
@@ -408,54 +461,7 @@ foldint(Con *res, int op, int w, Con *cl, Con *cr)
 		}
 		break;
 	default:
-		if (Ocmpw <= op && op <= Ocmpl1) {
-			if (op <= Ocmpw1) {
-				l.u = (int32_t)l.u;
-				r.u = (int32_t)r.u;
-			} else
-				op -= Ocmpl - Ocmpw;
-			switch (op - Ocmpw) {
-			case Ciule: x = l.u <= r.u; break;
-			case Ciult: x = l.u < r.u;  break;
-			case Cisle: x = l.s <= r.s; break;
-			case Cislt: x = l.s < r.s;  break;
-			case Cisgt: x = l.s > r.s;  break;
-			case Cisge: x = l.s >= r.s; break;
-			case Ciugt: x = l.u > r.u;  break;
-			case Ciuge: x = l.u >= r.u; break;
-			case Cieq:  x = l.u == r.u; break;
-			case Cine:  x = l.u != r.u; break;
-			default: die("unreachable");
-			}
-		}
-		else if (Ocmps <= op && op <= Ocmps1) {
-			switch (op - Ocmps) {
-			case Cfle: x = l.fs <= r.fs; break;
-			case Cflt: x = l.fs < r.fs;  break;
-			case Cfgt: x = l.fs > r.fs;  break;
-			case Cfge: x = l.fs >= r.fs; break;
-			case Cfne: x = l.fs != r.fs; break;
-			case Cfeq: x = l.fs == r.fs; break;
-			case Cfo: x = l.fs < r.fs || l.fs >= r.fs; break;
-			case Cfuo: x = !(l.fs < r.fs || l.fs >= r.fs); break;
-			default: die("unreachable");
-			}
-		}
-		else if (Ocmpd <= op && op <= Ocmpd1) {
-			switch (op - Ocmpd) {
-			case Cfle: x = l.fd <= r.fd; break;
-			case Cflt: x = l.fd < r.fd;  break;
-			case Cfgt: x = l.fd > r.fd;  break;
-			case Cfge: x = l.fd >= r.fd; break;
-			case Cfne: x = l.fd != r.fd; break;
-			case Cfeq: x = l.fd == r.fd; break;
-			case Cfo: x = l.fd < r.fd || l.fd >= r.fd; break;
-			case Cfuo: x = !(l.fd < r.fd || l.fd >= r.fd); break;
-			default: die("unreachable");
-			}
-		}
-		else
-			die("unreachable");
+		x = foldintdefault(&op, &l, &r);
 	}
 	*res = (Con){.type=typ, .label=lab, .bits={.i=x}};
 	return 0;
@@ -468,7 +474,7 @@ foldflt(Con *res, int op, int w, Con *cl, Con *cr)
 	double xd, ld, rd;
 
 	if (cl->type != CBits || cr->type != CBits)
-		err("invalid address operand for '%s'", optab[op].name);
+		qerr("invalid address operand for '%s'", optab[op].name);
 	*res = (Con){.type = CBits};
 	memset(&res->bits, 0, sizeof(res->bits));
 	if (w)  {

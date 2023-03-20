@@ -1,7 +1,4 @@
-#include <stdbool.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
+#include "../cosmopolitan/o/cosmopolitan.h"
 #include "util.h"
 #include "cc.h"
 
@@ -69,7 +66,7 @@ delscope(struct scope *s)
 }
 
 struct decl *
-scopegetdecl(struct scope *s, const char *name, bool recurse)
+scopegetdecl(struct scope *s, const char *name, _Bool recurse)
 {
 	struct decl *d;
 	struct mapkey k;
@@ -84,7 +81,7 @@ scopegetdecl(struct scope *s, const char *name, bool recurse)
 }
 
 struct type *
-scopegettag(struct scope *s, const char *name, bool recurse)
+scopegettag(struct scope *s, const char *name, _Bool recurse)
 {
 	struct type *t;
 	struct mapkey k;

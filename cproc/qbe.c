@@ -1,10 +1,4 @@
-#include <assert.h>
-#include <ctype.h>
-#include <inttypes.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "../cosmopolitan/o/cosmopolitan.h"
 #include "util.h"
 #include "cc.h"
 
@@ -127,7 +121,7 @@ mkblock(char *name)
 }
 
 struct value *
-mkglobal(char *name, bool private)
+mkglobal(char *name, _Bool private)
 {
 	static unsigned id;
 	struct value *v;
@@ -1194,7 +1188,7 @@ emitjump(struct jump *j)
 }
 
 void
-emitfunc(struct func *f, bool global)
+emitfunc(struct func *f, _Bool global)
 {
 	struct block *b;
 	struct inst **inst, **instend;

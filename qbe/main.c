@@ -25,7 +25,7 @@ extern Target T_rv64;
 static Target *tlist[] = {
 	&T_amd64_sysv,
 	&T_arm64,
-	&T_rv64,
+//	&T_rv64,
 	0
 };
 static FILE *outf;

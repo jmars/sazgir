@@ -131,7 +131,7 @@ depsinit(const char *builddir)
 	cap = BUFSIZ;
 	buf = xmalloc(cap);
 	if (builddir)
-		xasprintf(&depspath, "%s/%s", builddir, depsname);
+		sxasprintf(&depspath, "%s/%s", builddir, depsname);
 	depsfile = fopen(depspath, "r+");
 	if (!depsfile) {
 		if (errno != ENOENT)
@@ -194,7 +194,7 @@ depsinit(const char *builddir)
 			sz /= 4;
 			free(entry->deps.node);
 			entry->deps.len = sz;
-			entry->deps.node = xreallocarray(NULL, sz, sizeof(n));
+			entry->deps.node = xsreallocarray(NULL, sz, sizeof(n));
 			for (i = 0; i < sz; ++i) {
 				id = buf[3 + i];
 				if (id >= entrieslen) {
@@ -226,7 +226,7 @@ depsinit(const char *builddir)
 			n = mknode(path);
 			if (entrieslen >= entriescap) {
 				entriescap = entriescap ? entriescap * 2 : 1024;
-				entries = xreallocarray(entries, entriescap, sizeof(entries[0]));
+				entries = xsreallocarray(entries, entriescap, sizeof(entries[0]));
 			}
 			n->id = entrieslen;
 			entries[entrieslen++] = (struct entry){.node = n};
@@ -248,7 +248,7 @@ rewrite:
 	if (depsfile)
 		fclose(depsfile);
 	if (builddir)
-		xasprintf(&depstmppath, "%s/%s", builddir, depstmpname);
+		sxasprintf(&depstmppath, "%s/%s", builddir, depstmpname);
 	depsfile = fopen(depstmppath, "w");
 	if (!depsfile)
 		fatal("open %s:", depstmppath);
@@ -259,7 +259,7 @@ rewrite:
 	for (i = 0; i < entrieslen; ++i)
 		entries[i].node->id = -1;
 	/* save a temporary copy of the old entries */
-	oldentries = xreallocarray(NULL, entrieslen, sizeof(entries[0]));
+	oldentries = xsreallocarray(NULL, entrieslen, sizeof(entries[0]));
 	memcpy(oldentries, entries, entrieslen * sizeof(entries[0]));
 
 	len = entrieslen;
@@ -364,7 +364,7 @@ depsparse(const char *name, bool allowmissing)
 			if (buf.len > 0) {
 				if (deps.len == depscap) {
 					depscap = deps.node ? depscap * 2 : 32;
-					deps.node = xreallocarray(deps.node, depscap, sizeof(deps.node[0]));
+					deps.node = xsreallocarray(deps.node, depscap, sizeof(deps.node[0]));
 				}
 				in = mkstr(buf.len);
 				memcpy(in->s, buf.data, buf.len);

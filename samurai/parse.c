@@ -103,7 +103,7 @@ parseedge(struct scanner *s, struct environment *env)
 		envaddvar(e->env, name, val);
 	}
 
-	e->out = xreallocarray(NULL, e->nout, sizeof(e->out[0]));
+	e->out = xsreallocarray(NULL, e->nout, sizeof(e->out[0]));
 	for (i = 0, path = paths; i < e->nout; ++path) {
 		val = enveval(e->env, *path);
 		canonpath(val);
@@ -121,7 +121,7 @@ parseedge(struct scanner *s, struct environment *env)
 			++i;
 		}
 	}
-	e->in = xreallocarray(NULL, e->nin, sizeof(e->in[0]));
+	e->in = xsreallocarray(NULL, e->nin, sizeof(e->in[0]));
 	for (i = 0; i < e->nin; ++i, ++path) {
 		val = enveval(e->env, *path);
 		canonpath(val);
@@ -162,7 +162,7 @@ parsedefault(struct scanner *s, struct environment *env)
 	size_t i;
 
 	scanpaths(s);
-	deftarg = xreallocarray(deftarg, ndeftarg + npaths, sizeof(*deftarg));
+	deftarg = xsreallocarray(deftarg, ndeftarg + npaths, sizeof(*deftarg));
 	for (i = 0; i < npaths; ++i) {
 		path = enveval(env, paths[i]);
 		canonpath(path);

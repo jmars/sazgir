@@ -1,4 +1,7 @@
 #!/usr/bin/env sh
 git submodule update --init
-sh update-cosmo.sh
+pushd cosmopolitan
+./build/bootstrap/make.com -j m=optlinux
+popd
+PATH=$PWD/root/bin:$PATH
 ./root/bin/samurai

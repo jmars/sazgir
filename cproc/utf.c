@@ -1,6 +1,4 @@
-#include <assert.h>
-#include <stddef.h>
-#include <stdint.h>
+#include "../cosmopolitan/o/cosmopolitan.h"
 #include "utf.h"
 
 size_t

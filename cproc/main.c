@@ -1,7 +1,4 @@
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "../cosmopolitan/o/cosmopolitan.h"
 #include "util.h"
 #include "arg.h"
 #include "cc.h"

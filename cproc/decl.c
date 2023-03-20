@@ -1,10 +1,4 @@
-#include <assert.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "../cosmopolitan/o/cosmopolitan.h"
 #include "util.h"
 #include "cc.h"
 
@@ -216,7 +210,7 @@ tagspec(struct scope *s)
 			name = tok.lit;
 			next();
 			if (consume(TASSIGN)) {
-				e = constexpr(s);
+				e = qconstexpr(s);
 				if (e->kind != EXPRCONST || !(e->type->prop & PROPINT))
 					error(&tok.loc, "expected integer constant expression");
 				i = e->u.constant.u;
@@ -881,7 +875,7 @@ declcommon(struct scope *s, enum declkind kind, char *name, char *asmname, struc
 	return d;
 }
 
-bool
+_Bool
 decl(struct scope *s, struct func *f)
 {
 	struct qualtype base, qt;

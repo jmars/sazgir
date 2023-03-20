@@ -1,9 +1,4 @@
-#include <assert.h>
-#include <inttypes.h>
-#include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "../cosmopolitan/o/cosmopolitan.h"
 
 #define MAKESURE(what, x) typedef char make_sure_##what[(x)?1:-1]
 #define die(...) die_(__FILE__, __VA_ARGS__)
@@ -472,7 +467,7 @@ extern Op optab[NOp];
 void parse(FILE *, char *, void (Dat *), void (Fn *));
 void printfn(Fn *, FILE *);
 void printref(Ref, Fn *, FILE *);
-void err(char *, ...) __attribute__((noreturn));
+void qerr(char *, ...) __attribute__((noreturn));
 
 /* cfg.c */
 Blk *blknew(void);

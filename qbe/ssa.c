@@ -1,5 +1,4 @@
 #include "all.h"
-#include <stdarg.h>
 
 static void
 adduse(Tmp *tmp, int ty, Blk *b, ...)
@@ -375,7 +374,7 @@ ssacheck(Fn *fn)
 
 	for (t=&fn->tmp[Tmp0]; t-fn->tmp < fn->ntmp; t++) {
 		if (t->ndef > 1)
-			err("ssa temporary %%%s defined more than once",
+		  qerr("ssa temporary %%%s defined more than once",
 				t->name);
 		if (t->nuse > 0 && t->ndef == 0) {
 			bu = fn->rpo[t->use[0].bid];
@@ -423,6 +422,6 @@ Err:
 	if (t->visit)
 		die("%%%s violates ssa invariant", t->name);
 	else
-		err("ssa temporary %%%s is used undefined in @%s",
+		qerr("ssa temporary %%%s is used undefined in @%s",
 			t->name, bu->name);
 }
